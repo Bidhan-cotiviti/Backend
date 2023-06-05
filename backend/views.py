@@ -9,7 +9,8 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
-from django.utils import timezone
+# from django.utils import timezone
+from datetime import datetime
 
 class LoginView(APIView):
     def post(self, request):
@@ -42,17 +43,18 @@ class RDCreateView(APIView):
     def post(self, request, format=None):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
+            emp_id = serializer.validated_data['emp_id']
             member = serializer.validated_data['member']
             position = serializer.validated_data['position']
             remarks = serializer.validated_data['remarks']
-            created_at = timezone.now()  # Get the current timestamp
-
-            query = "INSERT INTO backend_rd (member, position, remarks, created_at) VALUES (%s, %s, %s, %s)"
+            created_at = datetime.now().date()
+            
+            query = "INSERT INTO backend_rd (emp_id, member, position, remarks, created_at) VALUES (%s, %s, %s, %s, %s)"
             with connection.cursor() as cursor:
-                cursor.execute(query, [member, position, remarks, created_at])
+                cursor.execute(query, [emp_id, member, position, remarks, created_at])
 
             return Response({'message': 'RD created successfully'}, status=201)
-        
+
         return Response(serializer.errors, status=400)
     
 
@@ -60,7 +62,8 @@ class RDListView(APIView):
     serializer_class = RDSerializer
 
     def get(self, request, format=None):
-        query = "SELECT * FROM backend_rd"
+        # query = "SELECT * FROM backend_rd"
+        query = "SELECT emp_id, member, position, remarks, created_at FROM backend_rd"
         with connection.cursor() as cursor:
             cursor.execute(query)
             results = cursor.fetchall()
@@ -68,7 +71,7 @@ class RDListView(APIView):
         rd_list = []
         for row in results:
             rd = {
-                'id': row[0],
+                'emp_id': row[0],
                 'member': row[1],
                 'position': row[2],
                 'remarks': row[3],
@@ -82,23 +85,24 @@ class DBListView(APIView):
     serializer_class = DBSerializer
 
     def get(self, request, format=None):
-        query = "SELECT * FROM backend_db"
+        # query = "SELECT * FROM backend_db"
+        query = "SELECT emp_id, member, position, remarks, created_at FROM backend_db"
         with connection.cursor() as cursor:
             cursor.execute(query)
             results = cursor.fetchall()
 
-        db_list = []
+        rd_list = []
         for row in results:
-            db = {
-                'id': row[0],
+            rd = {
+                'emp_id': row[0],
                 'member': row[1],
                 'position': row[2],
                 'remarks': row[3],
                 'Date': row[4],
             }
-            db_list.append(db)
+            rd_list.append(rd)
 
-        return Response(db_list, status=200)
+        return Response(rd_list, status=200)
 
 class DBCreateView(APIView):
     serializer_class = DBSerializer
@@ -106,15 +110,16 @@ class DBCreateView(APIView):
     def post(self, request, format=None):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
+            emp_id = serializer.validated_data['emp_id']
             member = serializer.validated_data['member']
             position = serializer.validated_data['position']
             remarks = serializer.validated_data['remarks']
-            created_at = timezone.now()  # Get the current timestamp
-
-            query = "INSERT INTO backend_db (member, position, remarks, created_at) VALUES (%s, %s, %s, %s)"
+            created_at = datetime.now().date()
+            
+            query = "INSERT INTO backend_db (emp_id, member, position, remarks, created_at) VALUES (%s, %s, %s, %s, %s)"
             with connection.cursor() as cursor:
-                cursor.execute(query, [member, position, remarks, created_at])
+                cursor.execute(query, [emp_id, member, position, remarks, created_at])
 
-            return Response({'message': 'DB  created successfully'}, status=201)
-        
+            return Response({'message': 'RD created successfully'}, status=201)
+
         return Response(serializer.errors, status=400)
